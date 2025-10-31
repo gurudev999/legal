@@ -1,11 +1,15 @@
 {
   "name": "legal",
   "version": "1.0.0",
-  "description": "Minimal starter for CTO.new",
+  "description": "Minimal starter project for CTO.new task-runner testing",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx || true"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx || true",
+    "build": "echo 'no build step configured' && exit 0",
+    "test": "echo 'no tests configured' && exit 0"
   },
+  "keywords": [],
+  "author": "",
   "license": "MIT"
 }
