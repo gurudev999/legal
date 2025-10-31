@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Org {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  timezone  String   @default("Asia/Kolkata")
+  locale    String   @default("en-IN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships  Membership[]
+  roles        Role[]
+  featureFlags FeatureFlag[]
+  auditLogs    AuditLog[]
+
+  @@map("orgs")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  phone     String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model Membership {
+  id        String   @id @default(uuid())
+  userId    String
+  orgId     String
+  roleId    String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, orgId])
+  @@map("memberships")
+}
+
+model Role {
+  id           String   @id @default(uuid())
+  name         String
+  permissions  Json
+  orgId        String?
+  isSystemRole Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  org         Org?         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  memberships Membership[]
+
+  @@map("roles")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String
+  description String?
+  enabled     Boolean  @default(false)
+  payload     Json?
+  orgId       String?
+  environment String   @default("development")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org Org? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([key, orgId, environment])
+  @@map("feature_flags")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  resource   String
+  resourceId String?
+  userId     String
+  orgId      String
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  timestamp  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, timestamp])
+  @@map("audit_logs")
+}
